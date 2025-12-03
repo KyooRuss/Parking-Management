@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - QR Parkers</title>
+    
+    <link rel="stylesheet" href="admin_dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Firebase Realtime Database (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.2.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div class="admin-container">
+        
+        <header class="admin-header">
+            <div class="header-left">
+                <h2>QR Parkers</h2>
+                <p>Parking Management System</p>
+            </div>
+            <div class="header-right">
+                <button id="admin-sign-out" class="sign-out-icon-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>OFF</span>
+                </button>
+            </div>
+        </header>
+
+        <nav class="admin-tab-nav">
+            <button class="admin-tab-btn active" data-tab="spaces">PARKING LOT SPACES</button>
+            <button class="admin-tab-btn" data-tab="logs">REPORT LOG</button>
+        </nav>
+
+        <main class="admin-main-content">
+            
+            <div class="tab-content active" id="spaces-content">
+                <!-- Motorcycle card + controls -->
+                <div class="vehicle-card admin-vehicle-card" data-vehicle="Motorcycle">
+                    <div class="card-details">
+                        <i class="fas fa-motorcycle vehicle-icon"></i>
+                        <p class="vehicle-type">Motorcycle</p>
+                    </div>
+                    <div class="card-stats">
+                        <p class="occupied-count">Occupied / Total</p>
+                        <h3 id="motorcycle-occupancy">0 / 21</h3>
+                    </div>
+                </div>
+                <div class="slot-settings-row">
+                    <label>
+                        Total Motorcycle slots:
+                        <input type="number" id="motorcycle-total-input" min="1" max="200" value="21">
+                    </label>
+                    <button id="motorcycle-total-save" class="slot-settings-save">
+                        Save
+                    </button>
+                </div>
+
+                <!-- Car card + controls -->
+                <div class="vehicle-card admin-vehicle-card" data-vehicle="Car">
+                    <div class="card-details">
+                        <i class="fas fa-car vehicle-icon"></i>
+                        <p class="vehicle-type">Car</p>
+                    </div>
+                    <div class="card-stats">
+                        <p class="occupied-count">Occupied / Total</p>
+                        <h3 id="car-occupancy">0 / 21</h3>
+                    </div>
+                </div>
+                <div class="slot-settings-row">
+                    <label>
+                        Total Car slots:
+                        <input type="number" id="car-total-input" min="1" max="200" value="21">
+                    </label>
+                    <button id="car-total-save" class="slot-settings-save">
+                        Save
+                    </button>
+                </div>
+            </div>
+
+            <div class="tab-content" id="logs-content" style="display: none;">
+                <h2 class="section-title">Parking & Report Log</h2>
+                <div class="log-list" id="log-list-container"></div>
+            </div>
+
+        </main>
+
+        <div class="generic-modal" id="slot-status-modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-title">QR Parkers - Parking Management System</span>
+                    <i class="fas fa-times close-modal-btn" data-modal="slot-status-modal"></i>
+                </div>
+                <div class="modal-body">
+                    <div class="legend">
+                        <span class="legend-item"><i class="occupied-square"></i> Occupied</span>
+                        <span class="legend-item"><i class="available-square"></i> Available Parking</span>
+                    </div>
+                    <p class="click-instruction">Click on a slot to view details</p>
+                    
+                    <div class="slot-grid-modal" id="modal-slot-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="generic-modal" id="slot-details-modal" style="display: none;">
+            <div class="modal-content small-content">
+                <div class="modal-header">
+                    <span class="modal-title">Parking Space</span>
+                    <i class="fas fa-times close-modal-btn" data-modal="slot-details-modal"></i>
+                </div>
+                <div class="modal-body details-body">
+                    <div class="details-main">
+                        <div class="qr-scanner-container" id="qr-reader"></div>
+                        
+                        <div class="details-info">
+                            <span class="slot-badge" id="detail-slot-badge"></span>
+                            
+                            <p class="info-label">CATEGORY</p>
+                            <h3 class="info-value" id="detail-category"></h3>
+                            <p class="info-label">CONTACT NUMBER</p>
+                            <h3 class="info-value" id="detail-contact"></h3>
+                            <p class="info-label">PLATE NUMBER</p>
+                            <h3 class="info-value" id="detail-plate"></h3>
+                        </div>
+                    </div>
+                    
+                    <div class="details-actions">
+                        <button class="action-btn status-display-btn" id="status-footer-btn">
+                            Waiting for Scan...
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-popup" id="admin-status-popup" style="display: none;">
+            Welcome Admin! Redirecting to admin dashboard...
+        </div>
+    </div>
+
+    <script src="admin_dashboard.js"></script>
+</body>
+</html>
+
+

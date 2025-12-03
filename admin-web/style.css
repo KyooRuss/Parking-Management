@@ -1,0 +1,207 @@
+:root {
+    --primary-gradient: linear-gradient(to right, #FFA751, #FF7E5F);
+    --login-bg: #fffbf7;
+    --primary-color: #FF7E5F;
+    --text-dark: #333;
+    --text-light: #555;
+    --card-bg: #fff;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--login-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    color: var(--text-dark);
+}
+
+.login-container {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-wrapper {
+    background: linear-gradient(to bottom right, #FFD47E, #FFA751);
+    border-radius: 15px; 
+    padding: 20px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo-wrapper i {
+    color: #E66A4D;
+}
+
+.university-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-light);
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.login-card {
+    background-color: var(--card-bg);
+    padding: 35px 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 380px; 
+    box-sizing: border-box;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.input-group label i {
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+
+.input-group input[type="text"],
+.input-group input[type="password"] {
+    width: 100%; 
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.input-group input[type="text"]:focus,
+.input-group input[type="password"]:focus {
+    border-color: var(--primary-color); 
+}
+
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    padding-right: 40px; 
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    color: #999;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.options-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 0.8rem;
+}
+
+.checkbox-container {
+    display: block;
+    position: relative;
+    padding-left: 20px;
+    cursor: pointer;
+    color: var(--text-light);
+}
+
+.checkbox-container input {
+    position: absolute;
+    opacity: 0;
+}
+
+.checkmark {
+    position: absolute;
+    top: 2px;
+    left: 0;
+    height: 14px;
+    width: 14px;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+}
+
+.checkbox-container input:checked ~ .checkmark {
+    background-color: var(--primary-color); 
+    border-color: var(--primary-color);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-container input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.forgot-password {
+    color: var(--primary-color); 
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.login-button {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary-gradient); 
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.3s, transform 0.2s;
+    box-shadow: 0 4px 10px rgba(255, 126, 95, 0.3);
+}
+
+.login-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.demo-text {
+    margin-top: 15px;
+    font-size: 0.75rem;
+    color: #888;
+}
+
+
