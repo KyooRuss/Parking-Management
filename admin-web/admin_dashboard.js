@@ -275,9 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
         detailPlate.textContent = 'N/A';
       }
 
-      statusFooterBtn.classList.add('available-status-footer');
-      statusFooterBtn.textContent = 'AVAILABLE - READY FOR ENTRY SCAN';
-
       const payload = {
         slot: slotId,
         category: category,
@@ -288,6 +285,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update slot status label + toggle controls
     const isMaintenance = !!MAINTENANCE_STATUS[slotId];
     const isReserved = !!RESERVED_STATUS[slotId];
+    
+    // Update footer button based on maintenance/reserved status if not occupied
+    if (!details) {
+      if (isMaintenance) {
+        statusFooterBtn.classList.add('available-status-footer');
+        statusFooterBtn.textContent = 'UNDER MAINTENANCE - NOT AVAILABLE';
+      } else if (isReserved) {
+        statusFooterBtn.classList.add('available-status-footer');
+        statusFooterBtn.textContent = 'RESERVED - NOT AVAILABLE';
+      } else {
+        statusFooterBtn.classList.add('available-status-footer');
+        statusFooterBtn.textContent = 'AVAILABLE - READY FOR ENTRY SCAN';
+      }
+    }
     if (detailSlotStatus) {
       if (isMaintenance) {
         detailSlotStatus.textContent = 'UNDER MAINTENANCE';
