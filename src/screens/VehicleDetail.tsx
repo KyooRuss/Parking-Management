@@ -10,34 +10,60 @@ type Props = NativeStackScreenProps<RootStackParamList, 'VehicleDetail'>;
 export default function VehicleDetail({ navigation, route }: Props) {
   const { id, type = 'Motorcycle', plate = 'XXX-XXXX', contact = '0907-543-4634' } = route.params || {};
   const [userName, setUserName] = useState<string | null>(null);
+  const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadUserName = async () => {
+    const loadUserData = async () => {
       const name = await userStorage.getUserName();
-      setUserName(name);
+      const imageUrl = await userStorage.getUserImageUrl();
+      // Ensure we have a userName - if not, try to get it from ProfileSettings default
+      if (!name) {
+        // Fallback: set default name if not found
+        await userStorage.setUserName('Kenneth Roy Villamayor');
+        setUserName('Kenneth Roy Villamayor');
+      } else {
+        setUserName(name);
+      }
+      setUserImageUrl(imageUrl);
     };
-    loadUserName();
+    loadUserData();
   }, []);
 
-  const handlePark = () => {
+  const handlePark = async () => {
+    // Ensure userName is loaded before navigating
+    let finalUserName = userName;
+    if (!finalUserName) {
+      finalUserName = await userStorage.getUserName();
+      if (finalUserName) setUserName(finalUserName);
+    }
+    
     navigation.navigate('QRScanner', {
       action: 'park',
       vehicleId: id,
       type,
       plate,
       contact,
-      userName: userName || undefined,
+      userName: finalUserName || undefined,
+      userImageUrl: userImageUrl || undefined,
     });
   };
 
-  const handleLeave = () => {
+  const handleLeave = async () => {
+    // Ensure userName is loaded before navigating
+    let finalUserName = userName;
+    if (!finalUserName) {
+      finalUserName = await userStorage.getUserName();
+      if (finalUserName) setUserName(finalUserName);
+    }
+    
     navigation.navigate('QRScanner', {
       action: 'leave',
       vehicleId: id,
       type,
       plate,
       contact,
-      userName: userName || undefined,
+      userName: finalUserName || undefined,
+      userImageUrl: userImageUrl || undefined,
     });
   };
 

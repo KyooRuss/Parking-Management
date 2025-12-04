@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { userStorage } from '../utils/userStorage';
+import { uploadProfileImage } from '../services/firebase';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileSettings'>;
 
@@ -27,9 +28,21 @@ export default function ProfileSettings({ navigation }: Props) {
   // Load saved avatar and save user name on mount
   useEffect(() => {
     loadAvatar();
+    loadUserImageUrl();
     // Save user name to storage so it's available throughout the app
     userStorage.setUserName(userProfile.name);
   }, []);
+
+  const loadUserImageUrl = async () => {
+    try {
+      const imageUrl = await userStorage.getUserImageUrl();
+      if (imageUrl) {
+        setAvatarUri(imageUrl);
+      }
+    } catch (error) {
+      console.error('Error loading user image URL:', error);
+    }
+  };
 
   const loadAvatar = async () => {
     try {
@@ -44,8 +57,17 @@ export default function ProfileSettings({ navigation }: Props) {
 
   const saveAvatar = async (uri: string) => {
     try {
+      // Save locally first
       await AsyncStorage.setItem(AVATAR_STORAGE_KEY, uri);
       setAvatarUri(uri);
+
+      // Upload to Firebase Storage
+      const userId = await userStorage.getUserId() || 'user';
+      const imageUrl = await uploadProfileImage(uri, userId);
+      
+      // Save the Firebase Storage URL
+      await userStorage.setUserImageUrl(imageUrl);
+      
       Toast.show({
         type: 'success',
         text1: 'Profile picture updated!',
@@ -104,7 +126,7 @@ export default function ProfileSettings({ navigation }: Props) {
   const pickImageFromLibrary = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'] as any,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,

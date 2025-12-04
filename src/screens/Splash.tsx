@@ -25,9 +25,7 @@ export default function Splash({ navigation }: Props) {
         {/* QR Code Icon */}
         <View style={styles.iconContainer}>
           <Image
-            source={{ uri: 'https://via.placeholder.com/150/FF6B35/8B4513?text=QR+Icon' }}
-            // Replace above with: require('../../assets/qr-icon.png')
-            // Image link: Add your QR code icon image here
+            source={require('../../assets/QRParkers.png')}
             style={styles.icon}
             resizeMode="contain"
           />

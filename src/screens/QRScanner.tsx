@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -6,13 +6,31 @@ import { RootStackParamList } from '../../App';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { performParkingAction } from '../services/firebase';
+import { userStorage } from '../utils/userStorage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'QRScanner'>;
 
 export default function QRScanner({ navigation, route }: Props) {
-  const { action, vehicleId, type: vehicleType, plate, contact, userName } = route.params;
+  const { action, vehicleId, type: vehicleType, plate, contact, userName: routeUserName, userImageUrl: routeUserImageUrl } = route.params;
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const [userName, setUserName] = useState<string | null>(routeUserName || null);
+  const [userImageUrl, setUserImageUrl] = useState<string | null>(routeUserImageUrl || null);
+
+  // Load userName from storage as fallback if not provided in route params
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!userName) {
+        const name = await userStorage.getUserName();
+        if (name) setUserName(name);
+      }
+      if (!userImageUrl) {
+        const imageUrl = await userStorage.getUserImageUrl();
+        if (imageUrl) setUserImageUrl(imageUrl);
+      }
+    };
+    loadUserData();
+  }, []);
 
   const handleBarCodeScanned = async ({ data }: { type: string; data: string }) => {
     if (scanned) return;
@@ -30,6 +48,9 @@ export default function QRScanner({ navigation, route }: Props) {
         throw new Error('QR code is missing slot or category.');
       }
 
+      // Ensure we have userName before proceeding
+      const finalUserName = userName || await userStorage.getUserName();
+      
       // Call Firebase to update the shared parking state
       await performParkingAction(action, {
         slotId,
@@ -37,7 +58,8 @@ export default function QRScanner({ navigation, route }: Props) {
         vehicleId,
         plate,
         contact,
-        userName: userName || undefined,
+        userName: finalUserName || undefined,
+        userImageUrl: userImageUrl || await userStorage.getUserImageUrl() || undefined,
       });
 
       const parkingCode = slotId;

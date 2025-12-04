@@ -6,6 +6,8 @@ import {
   push,
   serverTimestamp,
 } from 'firebase/database';
+import { getStorage, ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage';
+import * as FileSystem from 'expo-file-system/legacy';
 
 // IMPORTANT:
 // We use your existing Realtime Database:
@@ -27,6 +29,8 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 
 // Root of the RTDB
 const db = getDatabase(app);
+// Firebase Storage
+const storage = getStorage(app);
 
 export type ParkingAction = 'park' | 'leave';
 
@@ -40,6 +44,8 @@ export type ParkingPayload = {
   userId?: string;
   // User's full name from mobile app profile
   userName?: string;
+  // User's profile image URL from Firebase Storage
+  userImageUrl?: string;
 };
 
 /**
@@ -76,7 +82,7 @@ export async function performParkingAction(
   action: ParkingAction,
   payload: ParkingPayload,
 ) {
-  const { slotId, category, vehicleId, plate, contact, userId, userName } = payload;
+  const { slotId, category, vehicleId, plate, contact, userId, userName, userImageUrl } = payload;
 
   const slotRef = ref(db, `parking-management/slots/${slotId}`);
   const logsRef = ref(db, 'parking-management/logs');
@@ -91,6 +97,7 @@ export async function performParkingAction(
         contact?: string;
         userId?: string;
         userName?: string;
+        userImageUrl?: string;
         timeIn?: any;
       }) || {};
 
@@ -109,6 +116,7 @@ export async function performParkingAction(
         contact,
         userId: userId ?? null,
         userName: userName ?? null,
+        userImageUrl: userImageUrl ?? null,
         timeIn: now,
       };
 
@@ -121,6 +129,7 @@ export async function performParkingAction(
         contact,
         userId: userId ?? null,
         userName: userName ?? null,
+        userImageUrl: userImageUrl ?? null,
         status: 'PARKED',
         timeIn: now,
         timeOut: null,
@@ -151,6 +160,7 @@ export async function performParkingAction(
       contact: existing.contact ?? contact,
       userId: existing.userId ?? userId ?? null,
       userName: existing.userName ?? userName ?? null,
+      userImageUrl: existing.userImageUrl ?? userImageUrl ?? null,
       status: 'EXITED',
       timeIn: existing.timeIn ?? null,
       timeOut: now,
@@ -159,6 +169,39 @@ export async function performParkingAction(
 
     return next;
   });
+}
+
+/**
+ * Uploads a profile image to Firebase Storage and returns the download URL
+ */
+export async function uploadProfileImage(
+  localUri: string,
+  userId: string,
+): Promise<string> {
+  try {
+    // Read the file as base64
+    const base64 = await FileSystem.readAsStringAsync(localUri, {
+      encoding: 'base64' as any,
+    });
+
+    // Create a unique filename
+    const timestamp = Date.now();
+    const filename = `profile-images/${userId}_${timestamp}.jpg`;
+    const imageRef = storageRef(storage, filename);
+
+    // Convert base64 to data URL format
+    const dataUrl = `data:image/jpeg;base64,${base64}`;
+
+    // Upload the image
+    await uploadString(imageRef, dataUrl, 'data_url');
+
+    // Get the download URL
+    const downloadURL = await getDownloadURL(imageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading profile image:', error);
+    throw error;
+  }
 }
 
 

@@ -104,13 +104,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const timeOutDisplay = log.timeOut ? ` - ${log.timeOut}` : '';
 
       // Use full name from mobile app if available, otherwise fallback to userId
-      const name = log.userName || (log.userId ? `User ID: ${log.userId}` : 'Unknown User');
+      // Prioritize userName from mobile app profile
+      const name = log.userName || (log.userId ? log.userId : 'Unknown User');
       const initial = name.charAt(0).toUpperCase();
+      
+      // Use actual image if available, otherwise show initial
+      const avatarContent = log.userImageUrl
+        ? `<img src="${log.userImageUrl}" alt="${name}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.parentElement.innerHTML='${initial}'" />`
+        : initial;
 
       const item = document.createElement('div');
       item.classList.add('log-item');
       item.innerHTML = `
-        <div class="log-avatar" style="background-color: ${statusColor};">${initial}</div>
+        <div class="log-avatar" style="background-color: ${log.userImageUrl ? 'transparent' : statusColor}; overflow:hidden;">${avatarContent}</div>
         <div class="log-details">
           <p class="name-info">${name} - <span style="font-weight: 500;">${log.plate || 'N/A'}</span></p>
           <p class="time-info">Slot ID: ${log.slotId || 'N/A'}</p>
@@ -313,7 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
           category: val.category || (slotId.startsWith('A') ? 'Motorcycle' : 'Car'),
           contact: val.contact || 'N/A',
           plate: val.plate || 'N/A',
-          user: val.userId || `USER_${slotId}`,
+          user: val.userName || val.userId || `USER_${slotId}`,
+          userName: val.userName || null,
+          userImageUrl: val.userImageUrl || null,
           timeIn: val.timeIn || null,
         };
       }
