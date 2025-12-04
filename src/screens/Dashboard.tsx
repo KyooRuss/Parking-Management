@@ -8,8 +8,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
 // Mock vehicle data - in a real app, this would come from an API
 const vehicles = [
-  { id: '1', type: 'Motorcycle', plate: 'ABC-1234', contact: '0907-543-4634' },
-  { id: '2', type: 'Car', plate: 'XYZ-5678', contact: '0912-345-6789' },
+  { id: '1', type: 'Motorcycle', plate: 'KNT-2821', contact: '0907-543-4634' },
+  { id: '2', type: 'Car', plate: 'XYZ-4360', contact: '0912-345-6789' },
 ];
 
 export default function Dashboard({ navigation }: Props) {
@@ -30,7 +30,7 @@ export default function Dashboard({ navigation }: Props) {
         </View>
       </View>
       <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>My Vehicles</Text>
+        <Text style={styles.sectionTitle}>Registered Vehicles</Text>
         {vehicles.map((vehicle) => (
           <TouchableOpacity
             key={vehicle.id}
@@ -42,6 +42,13 @@ export default function Dashboard({ navigation }: Props) {
               contact: vehicle.contact,
             })}
           >
+            <View style={styles.vehicleIconContainer}>
+              <Ionicons 
+                name={vehicle.type === 'Motorcycle' ? 'bicycle' : 'car'} 
+                size={32} 
+                color="#FF6B35" 
+              />
+            </View>
             <View style={styles.vehicleInfo}>
               <Text style={styles.vehicleType}>{vehicle.type}</Text>
               <Text style={styles.vehiclePlate}>{vehicle.plate}</Text>
@@ -103,6 +110,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  vehicleIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#FFF4E6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   vehicleInfo: {
     flex: 1,

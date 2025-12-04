@@ -83,6 +83,17 @@ export default function VehicleDetail({ navigation, route }: Props) {
       {/* Vehicle Info Card */}
       <View style={styles.content}>
         <View style={styles.card}>
+          {/* Vehicle Icon */}
+          <View style={styles.vehicleIconSection}>
+            <View style={styles.vehicleIconContainer}>
+              <Ionicons 
+                name={type === 'Motorcycle' ? 'bicycle' : 'car'} 
+                size={48} 
+                color="#FF6B35" 
+              />
+            </View>
+          </View>
+          
           <View style={styles.infoRow}>
             <Text style={styles.label}>CATEGORY</Text>
             <Text style={styles.value}>{type}</Text>
@@ -154,6 +165,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  vehicleIconSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  vehicleIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#FFF4E6',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoRow: {
     marginBottom: 20,

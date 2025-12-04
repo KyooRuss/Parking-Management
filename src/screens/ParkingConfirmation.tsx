@@ -29,15 +29,6 @@ export default function ParkingConfirmation({ navigation, route }: Props) {
     });
   };
 
-  const handleReset = () => {
-    navigation.navigate('VehicleDetail', {
-      id: vehicleId,
-      type,
-      plate,
-      contact,
-    });
-  };
-
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -77,9 +68,6 @@ export default function ParkingConfirmation({ navigation, route }: Props) {
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.parkButton} onPress={handlePark}>
             <Text style={styles.buttonText}>PARK</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-            <Text style={styles.buttonText}>RESET</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.leaveButton} onPress={handleLeave}>
             <Text style={styles.buttonText}>LEAVE</Text>

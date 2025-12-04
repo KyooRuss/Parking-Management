@@ -19,7 +19,7 @@ export default function ProfileSettings({ navigation }: Props) {
     name: 'Kenneth Roy Villamayor',
     email: 'kennethroy@gmail.com',
     contact: '0907-543-4634',
-    plateNumber: 'ABC-1234',
+    plateNumber: 'KNT-2821',
     role: 'STUDENT',
   });
 
@@ -57,16 +57,12 @@ export default function ProfileSettings({ navigation }: Props) {
 
   const saveAvatar = async (uri: string) => {
     try {
-      // Save locally first
+      // Save locally only (Firebase upload disabled to prevent errors)
       await AsyncStorage.setItem(AVATAR_STORAGE_KEY, uri);
       setAvatarUri(uri);
-
-      // Upload to Firebase Storage
-      const userId = await userStorage.getUserId() || 'user';
-      const imageUrl = await uploadProfileImage(uri, userId);
       
-      // Save the Firebase Storage URL
-      await userStorage.setUserImageUrl(imageUrl);
+      // Don't upload to Firebase - just save locally
+      await userStorage.setUserImageUrl('');
       
       Toast.show({
         type: 'success',
@@ -222,10 +218,10 @@ export default function ProfileSettings({ navigation }: Props) {
         </View>
       </View>
 
-      {/* Profile Header Card */}
-      <View style={styles.profileHeaderCard}>
+      {/* Profile Header Card - Hidden */}
+      {/* <View style={styles.profileHeaderCard}>
         <Text style={styles.profileHeaderTitle}>PROFILE</Text>
-      </View>
+      </View> */}
 
       {/* Profile Card */}
       <View style={styles.profileCard}>
@@ -344,9 +340,9 @@ const styles = StyleSheet.create({
   profileCard: {
     backgroundColor: '#fff',
     marginHorizontal: 20,
+    marginTop: 20,
     padding: 24,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

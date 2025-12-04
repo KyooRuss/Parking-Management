@@ -22,16 +22,14 @@ export default function Login({ navigation }: Props) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* University Building Illustration */}
-      <View style={styles.illustrationContainer}>
+      {/* University Building Illustration - Removed */}
+      {/* <View style={styles.illustrationContainer}>
         <Image
           source={{ uri: 'https://via.placeholder.com/400/300/FF6B35?text=NEW+ERA+UNIVERSITY' }}
-          // Replace above with: require('../../assets/university-building.png')
-          // Image link: Add your university building illustration here
           style={styles.illustration}
           resizeMode="contain"
         />
-      </View>
+      </View> */}
 
       {/* Login Form Container */}
       <View style={styles.formContainer}>
@@ -100,20 +98,19 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   illustrationContainer: {
-    width: '100%',
-    height: 250,
-    backgroundColor: '#fff',
-    paddingTop: 20,
-    paddingHorizontal: 20,
+    // Removed - no longer displaying image
+    height: 0,
+    width: 0,
   },
   illustration: {
-    width: '100%',
-    height: '100%',
+    // Removed
+    height: 0,
+    width: 0,
   },
   formContainer: {
     backgroundColor: '#fff',
     marginHorizontal: 20,
-    marginTop: -20,
+    marginTop: 20,
     borderRadius: 12,
     padding: 24,
     shadowColor: '#000',

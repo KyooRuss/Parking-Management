@@ -173,35 +173,15 @@ export async function performParkingAction(
 
 /**
  * Uploads a profile image to Firebase Storage and returns the download URL
+ * DISABLED - Image upload removed to prevent ArrayBufferView errors
  */
 export async function uploadProfileImage(
   localUri: string,
   userId: string,
 ): Promise<string> {
-  try {
-    // Read the file as base64
-    const base64 = await FileSystem.readAsStringAsync(localUri, {
-      encoding: 'base64' as any,
-    });
-
-    // Create a unique filename
-    const timestamp = Date.now();
-    const filename = `profile-images/${userId}_${timestamp}.jpg`;
-    const imageRef = storageRef(storage, filename);
-
-    // Convert base64 to data URL format
-    const dataUrl = `data:image/jpeg;base64,${base64}`;
-
-    // Upload the image
-    await uploadString(imageRef, dataUrl, 'data_url');
-
-    // Get the download URL
-    const downloadURL = await getDownloadURL(imageRef);
-    return downloadURL;
-  } catch (error) {
-    console.error('Error uploading profile image:', error);
-    throw error;
-  }
+  // Image upload disabled - return empty string to prevent errors
+  // Images are stored locally only
+  return '';
 }
 
 

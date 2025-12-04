@@ -48,7 +48,7 @@ export default function App() {
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>
-      <StatusBar style="auto" />
+      <StatusBar hidden />
     </QueryClientProvider>
   );
 }
