@@ -1,41 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { performParkingAction } from '../services/firebase';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'QRScanner'>;
 
 export default function QRScanner({ navigation, route }: Props) {
-  const { action, vehicleId, type: vehicleType, plate, contact } = route.params;
+  const { action, vehicleId, type: vehicleType, plate, contact, userName } = route.params;
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
 
-  const handleBarCodeScanned = ({ type: barcodeType, data }: { type: string; data: string }) => {
+  const handleBarCodeScanned = async ({ data }: { type: string; data: string }) => {
     if (scanned) return;
 
     setScanned(true);
 
-    // Simulate extracting parking code from QR data
-    // In a real app, you would parse the QR code data
-    const parkingCode = data.includes('A') ? data : `A${Math.floor(Math.random() * 20) + 1}`;
+    try {
+      // Expect JSON data from the QR code, for example:
+      // { "slot": "A1", "category": "Motorcycle" }
+      const parsed = JSON.parse(data);
+      const slotId: string = parsed.slot || parsed.slotId;
+      const category: string = parsed.category;
 
-    // Navigate to confirmation screen — pass the vehicle category from route params
-    navigation.replace('ParkingConfirmation', {
-      parkingCode,
-      vehicleId,
-      type: vehicleType,
-      plate,
-      contact,
-      action,
-    });
+      if (!slotId || !category) {
+        throw new Error('QR code is missing slot or category.');
+      }
 
-    Toast.show({
-      type: 'success',
-      text1: action === 'park' ? 'Parked successfully!' : 'Left successfully!',
-    });
+      // Call Firebase to update the shared parking state
+      await performParkingAction(action, {
+        slotId,
+        category: category === 'Motorcycle' ? 'Motorcycle' : 'Car',
+        vehicleId,
+        plate,
+        contact,
+        userName: userName || undefined,
+      });
+
+      const parkingCode = slotId;
+
+      // Navigate to confirmation screen — pass the slot id as parking code
+      navigation.replace('ParkingConfirmation', {
+        parkingCode,
+        vehicleId,
+        type: vehicleType,
+        plate,
+        contact,
+        action,
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: action === 'park' ? 'Parked successfully!' : 'Left successfully!',
+      });
+    } catch (err: any) {
+      console.error('QR scan error', err);
+      setScanned(false);
+      Alert.alert('Scan failed', err?.message || 'Invalid QR code data.');
+    }
   };
 
   const handleClose = () => {

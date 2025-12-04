@@ -23,6 +23,7 @@
     "expo-media-library": "~18.2.0",
     "expo-permissions": "^14.4.0",
     "expo-status-bar": "~3.0.8",
+    "firebase": "^11.10.0",
     "nativewind": "^4.2.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",

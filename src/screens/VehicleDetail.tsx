@@ -1,13 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { Ionicons } from '@expo/vector-icons';
+import { userStorage } from '../utils/userStorage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VehicleDetail'>;
 
 export default function VehicleDetail({ navigation, route }: Props) {
   const { id, type = 'Motorcycle', plate = 'XXX-XXXX', contact = '0907-543-4634' } = route.params || {};
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadUserName = async () => {
+      const name = await userStorage.getUserName();
+      setUserName(name);
+    };
+    loadUserName();
+  }, []);
 
   const handlePark = () => {
     navigation.navigate('QRScanner', {
@@ -16,6 +26,7 @@ export default function VehicleDetail({ navigation, route }: Props) {
       type,
       plate,
       contact,
+      userName: userName || undefined,
     });
   };
 
@@ -26,6 +37,7 @@ export default function VehicleDetail({ navigation, route }: Props) {
       type,
       plate,
       contact,
+      userName: userName || undefined,
     });
   };
 

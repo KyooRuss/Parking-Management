@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import { userStorage } from '../utils/userStorage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileSettings'>;
 
@@ -23,9 +24,11 @@ export default function ProfileSettings({ navigation }: Props) {
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
-  // Load saved avatar on mount
+  // Load saved avatar and save user name on mount
   useEffect(() => {
     loadAvatar();
+    // Save user name to storage so it's available throughout the app
+    userStorage.setUserName(userProfile.name);
   }, []);
 
   const loadAvatar = async () => {

@@ -21,7 +21,7 @@ export type RootStackParamList = {
   Login: undefined;
   Dashboard: undefined;
   VehicleDetail: { id: string; type?: string; plate?: string; contact?: string };
-  QRScanner: { action: 'park' | 'leave'; vehicleId: string; type: string; plate: string; contact: string };
+  QRScanner: { action: 'park' | 'leave'; vehicleId: string; type: string; plate: string; contact: string; userName?: string };
   ParkingConfirmation: { parkingCode: string; vehicleId: string; type: string; plate: string; contact: string; action: 'park' | 'leave' };
   ProfileSettings: undefined;
   ChangePassword: undefined;

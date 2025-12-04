@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { Ionicons } from '@expo/vector-icons';
+import { userStorage } from '../utils/userStorage';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -11,8 +12,11 @@ export default function Login({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [keepSignedIn, setKeepSignedIn] = useState(true);
 
-  const handleLogin = () => {
-    // Add your login logic here
+  const handleLogin = async () => {
+    // For demo: save a default user name (in real app, get from login API)
+    // You can get this from ProfileSettings or your auth system
+    await userStorage.setUserName('Kenneth Roy Villamayor');
+    await userStorage.setUserId(username || 'user');
     navigation.replace('Dashboard');
   };
 

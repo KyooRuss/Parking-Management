@@ -103,8 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
         : 'fas fa-arrow-alt-circle-right';
       const timeOutDisplay = log.timeOut ? ` - ${log.timeOut}` : '';
 
-      const name = log.userId ? `User ID: ${log.userId}` : 'Unknown User';
-      const initial = name.charAt(0);
+      // Use full name from mobile app if available, otherwise fallback to userId
+      const name = log.userName || (log.userId ? `User ID: ${log.userId}` : 'Unknown User');
+      const initial = name.charAt(0).toUpperCase();
 
       const item = document.createElement('div');
       item.classList.add('log-item');
