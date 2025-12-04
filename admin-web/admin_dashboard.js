@@ -108,15 +108,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const name = log.userName || (log.userId ? log.userId : 'Unknown User');
       const initial = name.charAt(0).toUpperCase();
       
-      // Use actual image if available, otherwise show initial
-      const avatarContent = log.userImageUrl
-        ? `<img src="${log.userImageUrl}" alt="${name}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.parentElement.innerHTML='${initial}'" />`
-        : initial;
+      // Use initial only (images removed to prevent errors)
+      const avatarContent = initial;
 
       const item = document.createElement('div');
       item.classList.add('log-item');
       item.innerHTML = `
-        <div class="log-avatar" style="background-color: ${log.userImageUrl ? 'transparent' : statusColor}; overflow:hidden;">${avatarContent}</div>
+        <div class="log-avatar" style="background-color: ${statusColor}; overflow:hidden;">${avatarContent}</div>
         <div class="log-details">
           <p class="name-info">${name} - <span style="font-weight: 500;">${log.plate || 'N/A'}</span></p>
           <p class="time-info">Slot ID: ${log.slotId || 'N/A'}</p>
