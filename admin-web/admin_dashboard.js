@@ -526,6 +526,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Save maintenance / reserved flags from the modal
   if (saveSlotFlagsBtn && maintenanceToggle && reservedToggle) {
+    // Make maintenance / reserved mutually exclusive (only one can be active at a time)
+    maintenanceToggle.addEventListener('change', () => {
+      if (maintenanceToggle.checked) {
+        reservedToggle.checked = false;
+      }
+    });
+    reservedToggle.addEventListener('change', () => {
+      if (reservedToggle.checked) {
+        maintenanceToggle.checked = false;
+      }
+    });
+
     saveSlotFlagsBtn.addEventListener('click', () => {
       if (!currentSlotId) {
         alert('No slot selected.');
