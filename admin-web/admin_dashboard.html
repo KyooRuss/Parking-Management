@@ -97,6 +97,8 @@
                     <div class="legend">
                         <span class="legend-item"><i class="occupied-square"></i> Occupied</span>
                         <span class="legend-item"><i class="available-square"></i> Available Parking</span>
+                        <span class="legend-item"><i class="maintenance-square"></i> Under Maintenance</span>
+                        <span class="legend-item"><i class="reserved-square"></i> Reserved</span>
                     </div>
                     <p class="click-instruction">Click on a slot to view details</p>
                     
@@ -106,24 +108,63 @@
         </div>
 
         <div class="generic-modal" id="slot-details-modal" style="display: none;">
-            <div class="modal-content small-content">
+            <div class="modal-content">
                 <div class="modal-header">
                     <span class="modal-title">Parking Space</span>
                     <i class="fas fa-times close-modal-btn" data-modal="slot-details-modal"></i>
                 </div>
                 <div class="modal-body details-body">
                     <div class="details-main">
-                        <div class="qr-scanner-container" id="qr-reader"></div>
-                        
-                        <div class="details-info">
-                            <span class="slot-badge" id="detail-slot-badge"></span>
+                        <!-- Left column: QR + slot info + maintenance/reserved -->
+                        <div class="details-column details-left">
+                            <div class="qr-scanner-container" id="qr-reader"></div>
                             
-                            <p class="info-label">CATEGORY</p>
-                            <h3 class="info-value" id="detail-category"></h3>
-                            <p class="info-label">CONTACT NUMBER</p>
-                            <h3 class="info-value" id="detail-contact"></h3>
-                            <p class="info-label">PLATE NUMBER</p>
-                            <h3 class="info-value" id="detail-plate"></h3>
+                            <div class="details-info">
+                                <span class="slot-badge" id="detail-slot-badge"></span>
+                                
+                                <p class="info-label">CATEGORY</p>
+                                <h3 class="info-value" id="detail-category"></h3>
+                                <p class="info-label">SLOT STATUS</p>
+                                <h3 class="info-value" id="detail-slot-status"></h3>
+                                <p class="info-label">CONTACT NUMBER</p>
+                                <h3 class="info-value" id="detail-contact"></h3>
+                                <p class="info-label">PLATE NUMBER</p>
+                                <h3 class="info-value" id="detail-plate"></h3>
+                            </div>
+
+                            <div class="slot-flags-row">
+                                <label class="slot-flag-checkbox">
+                                    <input type="checkbox" id="maintenance-toggle" />
+                                    Under maintenance
+                                </label>
+                                <label class="slot-flag-checkbox">
+                                    <input type="checkbox" id="reserved-toggle" />
+                                    Reserved
+                                </label>
+                                <button class="slot-flag-save-btn" id="save-slot-flags-btn">
+                                    Save Slot Status
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right column: sample registered vehicles / assignment -->
+                        <div class="details-column details-right">
+                            <div class="assign-vehicle-row">
+                                <p class="assign-label">List of Registered Vehicles</p>
+                                <select id="sample-vehicle-select" class="assign-select"></select>
+                                <button class="assign-btn" id="assign-sample-vehicle-btn">
+                                    Occupy Slot with Selected Vehicle
+                                </button>
+                                <p class="assign-helper" id="assign-helper-text">
+                                    Only available slots that are not under maintenance can be occupied.
+                                </p>
+                                <button class="assign-btn secondary" id="open-sample-vehicles-modal-btn">
+                                    View All Registered Vehicles
+                                </button>
+                                <button class="assign-btn danger" id="admin-leave-slot-btn">
+                                    Mark as Left / Clear Slot
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -132,6 +173,31 @@
                             Waiting for Scan...
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for viewing sample registered vehicles -->
+        <div class="generic-modal" id="sample-vehicles-modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-title">All Registered Vehicles</span>
+                    <i class="fas fa-times close-modal-btn" data-modal="sample-vehicles-modal"></i>
+                </div> 
+                <div class="modal-body">
+                    <div class="sample-vehicles-header">
+                        <p class="section-helper-text">
+                            These are registered vehicles that can be assigned to a parking slot
+                            when a user cannot scan the QR code (e.g., no internet access or no mobile device).
+                        </p>
+                        <input 
+                            type="text" 
+                            id="sample-vehicle-search" 
+                            class="sample-vehicle-search-input" 
+                            placeholder="Search by plate, type, or contact..."
+                        />
+                    </div>
+                    <div id="sample-vehicle-list" class="sample-vehicle-list"></div>
                 </div>
             </div>
         </div>

@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const slotDetailsModal = qs('#slot-details-modal');
   const closeGenericModalBtns = qsa('.close-modal-btn');
   const modalSlotGrid = qs('#modal-slot-grid');
+  const sampleVehicleListContainer = qs('#sample-vehicle-list');
   const motorcycleOccupancyDisplay = qs('#motorcycle-occupancy');
   const carOccupancyDisplay = qs('#car-occupancy');
   const logListContainer = qs('#log-list-container');
@@ -48,15 +49,88 @@ document.addEventListener('DOMContentLoaded', () => {
   const detailContact = qs('#detail-contact');
   const detailPlate = qs('#detail-plate');
   const detailSlotBadge = qs('#detail-slot-badge');
+  const detailSlotStatus = qs('#detail-slot-status');
   const statusFooterBtn = qs('#status-footer-btn');
   const qrReaderContainer = qs('#qr-reader');
   const motoTotalInput = qs('#motorcycle-total-input');
   const carTotalInput = qs('#car-total-input');
   const motoTotalSaveBtn = qs('#motorcycle-total-save');
   const carTotalSaveBtn = qs('#car-total-save');
+  const maintenanceToggle = qs('#maintenance-toggle');
+  const reservedToggle = qs('#reserved-toggle');
+  const saveSlotFlagsBtn = qs('#save-slot-flags-btn');
+  const sampleVehicleSelect = qs('#sample-vehicle-select');
+  const assignSampleVehicleBtn = qs('#assign-sample-vehicle-btn');
+  const assignHelperText = qs('#assign-helper-text');
+  const openSampleVehiclesModalBtn = qs('#open-sample-vehicles-modal-btn');
+  const sampleVehiclesModal = qs('#sample-vehicles-modal');
+  const sampleVehicleSearchInput = qs('#sample-vehicle-search');
+  const adminLeaveSlotBtn = qs('#admin-leave-slot-btn');
 
   let currentSlotType = '';
   let currentSlotId = '';
+  let currentSlotCategory = ''; // 'Motorcycle' | 'Car'
+
+  // --- Additional slot flags (maintenance / reserved) ---
+  let MAINTENANCE_STATUS = {}; // { A1: true/false }
+  let RESERVED_STATUS = {}; // { A1: true/false }
+
+  // --- Sample registered vehicles (for manual assignment) ---
+  const SAMPLE_VEHICLES = [
+    // Motorcycle samples
+    { id: 'M1', type: 'Motorcycle', plate: 'KNT-2821', contact: '0907-543-4634' },
+    { id: 'M2', type: 'Motorcycle', plate: 'MCY-1234', contact: '0911-222-3333' },
+    { id: 'M3', type: 'Motorcycle', plate: 'RDX-9087', contact: '0908-765-4321' },
+    // Car samples
+    { id: 'C1', type: 'Car', plate: 'XYZ-4360', contact: '0912-345-6789' },
+    { id: 'C2', type: 'Car', plate: 'CAR-5678', contact: '0909-555-1212' },
+    { id: 'C3', type: 'Car', plate: 'PLT-8899', contact: '0917-888-9999' },
+  ];
+
+  const renderSampleVehiclesList = (filterText = '') => {
+    if (!sampleVehicleListContainer) return;
+    sampleVehicleListContainer.innerHTML = '';
+    const ft = filterText.trim().toLowerCase();
+    SAMPLE_VEHICLES.filter((v) => {
+      // Only show vehicles for the current slot category if we know it
+      if (currentSlotCategory && v.type !== currentSlotCategory) return false;
+      if (!ft) return true;
+      const haystack = `${v.type} ${v.plate} ${v.contact}`.toLowerCase();
+      return haystack.includes(ft);
+    }).forEach((v) => {
+      const pill = document.createElement('div');
+      pill.classList.add('sample-vehicle-pill');
+      pill.setAttribute('data-vehicle-id', v.id);
+      pill.textContent = `${v.type} • ${v.plate} • ${v.contact}`;
+
+      // When admin clicks a sample vehicle in this modal,
+      // reflect the selection in the "List of Registered Vehicles" dropdown.
+      pill.addEventListener('click', () => {
+        if (sampleVehicleSelect) {
+          sampleVehicleSelect.value = v.id;
+        }
+        // Optional: close the modal after choosing a vehicle
+        if (sampleVehiclesModal) {
+          sampleVehiclesModal.style.display = 'none';
+        }
+      });
+
+      sampleVehicleListContainer.appendChild(pill);
+    });
+  };
+
+  const populateSampleVehicleSelect = () => {
+    if (!sampleVehicleSelect) return;
+    sampleVehicleSelect.innerHTML = '';
+    SAMPLE_VEHICLES.forEach((v) => {
+      // Only include vehicles matching this slot's category
+      if (currentSlotCategory && v.type !== currentSlotCategory) return;
+      const opt = document.createElement('option');
+      opt.value = v.id;
+      opt.textContent = `${v.type} - ${v.plate} (${v.contact})`;
+      sampleVehicleSelect.appendChild(opt);
+    });
+  };
 
   // --- Occupancy helpers ---
   const getOccupancy = (type) => {
@@ -91,9 +165,27 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const sorted = logs
-      .slice()
-      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    // De‑duplicate logs that are effectively the same PARK / EXIT record.
+    // Sometimes the Realtime Database can contain duplicates if a write is retried;
+    // here we collapse them so the admin only sees one entry.
+    const uniqueMap = new Map();
+    logs.forEach((log) => {
+      const key = [
+        log.slotId || '',
+        log.status || '',
+        log.vehicleId || '',
+        log.plate || '',
+        log.timeIn || '',
+        log.timeOut || '',
+      ].join('|');
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, log);
+      }
+    });
+
+    const sorted = Array.from(uniqueMap.values()).sort(
+      (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
+    );
 
     sorted.forEach((log) => {
       const isExited = log.status === 'EXITED';
@@ -147,6 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Slot details panel ---
   const handleSlotDetailsUpdate = (slotId, details) => {
     const category = slotId.startsWith('A') ? 'Motorcycle' : 'Car';
+    currentSlotCategory = category;
     if (detailSlotBadge) detailSlotBadge.textContent = slotId;
 
     if (!statusFooterBtn) return;
@@ -191,6 +284,50 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       generateQR(payload);
     }
+
+    // Update slot status label + toggle controls
+    const isMaintenance = !!MAINTENANCE_STATUS[slotId];
+    const isReserved = !!RESERVED_STATUS[slotId];
+    if (detailSlotStatus) {
+      if (isMaintenance) {
+        detailSlotStatus.textContent = 'UNDER MAINTENANCE';
+      } else if (isReserved) {
+        detailSlotStatus.textContent = 'RESERVED';
+      } else if (details) {
+        detailSlotStatus.textContent = 'OCCUPIED';
+      } else {
+        detailSlotStatus.textContent = 'AVAILABLE';
+      }
+    }
+
+    if (maintenanceToggle) {
+      maintenanceToggle.checked = isMaintenance;
+    }
+    if (reservedToggle) {
+      reservedToggle.checked = isReserved;
+    }
+
+    // Disable assignment if not allowed
+    const isOccupied = !!details;
+    const canAssign = !isOccupied && !isMaintenance;
+    if (assignSampleVehicleBtn) {
+      assignSampleVehicleBtn.disabled = !canAssign;
+    }
+    if (assignHelperText) {
+      if (isMaintenance) {
+        assignHelperText.textContent =
+          'This slot is under maintenance. Clear maintenance to allow manual assignment.';
+      } else if (isOccupied) {
+        assignHelperText.textContent =
+          'This slot is already occupied. Ask the user to leave before assigning another vehicle.';
+      } else {
+        assignHelperText.textContent =
+          'Only available slots that are not under maintenance can be occupied.';
+      }
+    }
+
+    // Refresh the registered-vehicle list for this slot's category
+    populateSampleVehicleSelect();
   };
 
   // --- Slot grid ---
@@ -209,15 +346,28 @@ document.addEventListener('DOMContentLoaded', () => {
     slotsOfType.forEach((slotId) => {
       const isOccupied = !!slotStatus[slotId];
       const details = PARKED_DATA_BY_SLOT[slotId];
-      const plateDisplay = isOccupied ? details?.plate || 'PARKED' : 'AVAILABLE';
-      const statusClass = isOccupied ? 'occupied' : 'available';
+      const isMaintenance = !!MAINTENANCE_STATUS[slotId];
+      const isReserved = !!RESERVED_STATUS[slotId];
+
+      let statusClass = 'available';
+      let label = 'AVAILABLE';
+      if (isMaintenance) {
+        statusClass = 'maintenance';
+        label = 'MAINTENANCE';
+      } else if (isReserved) {
+        statusClass = 'reserved';
+        label = 'RESERVED';
+      } else if (isOccupied) {
+        statusClass = 'occupied';
+        label = details?.plate || 'PARKED';
+      }
 
       const slotItem = document.createElement('div');
       slotItem.classList.add('slot-item-modal', statusClass);
       slotItem.setAttribute('data-slot-id', slotId);
       slotItem.innerHTML = `
         <p style="margin:0; font-size: 1.1rem;">${slotId}</p>
-        <span style="font-size: 0.7rem; font-weight: 500;">${plateDisplay}</span>
+        <span style="font-size: 0.7rem; font-weight: 500;">${label}</span>
       `;
 
       slotItem.addEventListener('click', (e) => {
@@ -307,11 +457,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = snapshot.val() || {};
     slotStatus = {};
     PARKED_DATA_BY_SLOT = {};
+    MAINTENANCE_STATUS = {};
+    RESERVED_STATUS = {};
 
     Object.entries(data).forEach(([slotId, v]) => {
       const val = v || {};
       const occupied = !!val.occupied;
       slotStatus[slotId] = occupied;
+      MAINTENANCE_STATUS[slotId] = !!val.maintenance;
+      RESERVED_STATUS[slotId] = !!val.reserved;
       if (occupied) {
         PARKED_DATA_BY_SLOT[slotId] = {
           category: val.category || (slotId.startsWith('A') ? 'Motorcycle' : 'Car'),
@@ -370,7 +524,176 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Initial occupancy display
+  // Save maintenance / reserved flags from the modal
+  if (saveSlotFlagsBtn && maintenanceToggle && reservedToggle) {
+    saveSlotFlagsBtn.addEventListener('click', () => {
+      if (!currentSlotId) {
+        alert('No slot selected.');
+        return;
+      }
+      const maintenance = !!maintenanceToggle.checked;
+      const reserved = !!reservedToggle.checked;
+      const slotRef = slotsRef.child(currentSlotId);
+      slotRef.update({ maintenance, reserved });
+      // local state will be updated by the listener, but we can give quick feedback
+      alert('Slot status updated successfully.');
+    });
+  }
+
+  // Manual assignment using sample vehicles
+  if (assignSampleVehicleBtn && sampleVehicleSelect) {
+    assignSampleVehicleBtn.addEventListener('click', () => {
+      if (!currentSlotId) {
+        alert('No slot selected.');
+        return;
+      }
+      const selectedId = sampleVehicleSelect.value;
+      const vehicle = SAMPLE_VEHICLES.find((v) => v.id === selectedId);
+      if (!vehicle) {
+        alert('Please choose a vehicle to assign.');
+        return;
+      }
+
+      const expectedCategory = currentSlotId.startsWith('A') ? 'Motorcycle' : 'Car';
+      if (vehicle.type !== expectedCategory) {
+        alert(
+          `This slot is for ${expectedCategory} only. Please choose a vehicle with the same category.`,
+        );
+        return;
+      }
+
+      const slotRef = slotsRef.child(currentSlotId);
+      const now = firebase.database.ServerValue.TIMESTAMP;
+
+      slotRef.transaction(
+        (current) => {
+          const existing = current || {};
+
+          if (existing.occupied) {
+            alert('This slot is already occupied.');
+            return; // abort
+          }
+          if (existing.maintenance) {
+            alert('This slot is under maintenance and cannot be occupied.');
+            return; // abort
+          }
+
+          return {
+            slotId: currentSlotId,
+            category: vehicle.type,
+            occupied: true,
+            vehicleId: vehicle.id,
+            plate: vehicle.plate,
+            contact: vehicle.contact,
+            userId: null,
+            userName: null,
+            userImageUrl: null,
+            timeIn: now,
+            maintenance: !!existing.maintenance,
+            reserved: !!existing.reserved,
+          };
+        },
+        (error, committed) => {
+          if (error || !committed) return;
+          // Push a single PARKED log entry after the transaction commits
+          logsRef.push({
+            slotId: currentSlotId,
+            category: vehicle.type,
+            vehicleId: vehicle.id,
+            plate: vehicle.plate,
+            contact: vehicle.contact,
+            userId: null,
+            userName: null,
+            userImageUrl: null,
+            status: 'PARKED',
+            timeIn: now,
+            timeOut: null,
+            createdAt: now,
+          });
+        },
+      );
+    });
+  }
+
+  // Open modal with full sample vehicle list
+  if (openSampleVehiclesModalBtn && sampleVehiclesModal) {
+    openSampleVehiclesModalBtn.addEventListener('click', () => {
+      if (sampleVehicleSearchInput) {
+        sampleVehicleSearchInput.value = '';
+      }
+      renderSampleVehiclesList('');
+      sampleVehiclesModal.style.display = 'flex';
+    });
+  }
+
+  // Search inside sample vehicles modal
+  if (sampleVehicleSearchInput) {
+    sampleVehicleSearchInput.addEventListener('input', (e) => {
+      const value = e.target.value || '';
+      renderSampleVehiclesList(value);
+    });
+  }
+
+  // Admin "Leave" action to clear a slot and create EXIT log
+  if (adminLeaveSlotBtn) {
+    adminLeaveSlotBtn.addEventListener('click', () => {
+      if (!currentSlotId) {
+        alert('No slot selected.');
+        return;
+      }
+
+      const confirmLeave = window.confirm(
+        `Mark slot ${currentSlotId} as LEFT? This will clear the current vehicle and free the slot.`,
+      );
+      if (!confirmLeave) return;
+
+      const slotRef = slotsRef.child(currentSlotId);
+      const now = firebase.database.ServerValue.TIMESTAMP;
+
+      slotRef.transaction((current) => {
+        const existing = current || {};
+        if (!existing.occupied) {
+          alert('This slot is already available.');
+          return; // abort
+        }
+
+        const next = {
+          slotId: currentSlotId,
+          category: existing.category || (currentSlotId.startsWith('A') ? 'Motorcycle' : 'Car'),
+          occupied: false,
+          vehicleId: null,
+          plate: null,
+          contact: null,
+          userId: null,
+          userName: null,
+          userImageUrl: null,
+          timeIn: null,
+          maintenance: !!existing.maintenance,
+          reserved: !!existing.reserved,
+        };
+
+        logsRef.push({
+          slotId: currentSlotId,
+          category: existing.category || (currentSlotId.startsWith('A') ? 'Motorcycle' : 'Car'),
+          vehicleId: existing.vehicleId || null,
+          plate: existing.plate || null,
+          contact: existing.contact || null,
+          userId: existing.userId || null,
+          userName: existing.userName || null,
+          userImageUrl: existing.userImageUrl || null,
+          status: 'EXITED',
+          timeIn: existing.timeIn || null,
+          timeOut: now,
+          createdAt: now,
+        });
+
+        return next;
+      });
+    });
+  }
+
+  // Initial UI setup
+  populateSampleVehicleSelect();
   updateOccupancyUI();
 });
 
